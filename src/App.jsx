@@ -1,9 +1,20 @@
-import { useState } from 'react';
+import { useState, usefRef, useEffect } from 'react';
 import Die from '../components/Die';
 import { nanoid } from 'nanoid';
 
 function App() {
-  const [dice, setDice] = useState(generateAllNewDice());
+  const [dice, setDice] = useState(() => generateAllNewDice());
+  const buttonRef = useRef(null);
+
+  const gameWon = dice.every(die => die.isHeld) &&
+      dice.every(die => die.value === dice[0].value);
+
+  useEffect(() => {
+    if (gameWon) {
+      buttonRef.current.focus()
+    }
+  })
+
 
   function generateAllNewDice() {
     return new Array(10)
@@ -24,13 +35,17 @@ function App() {
   }
 
   function handleRoll() {
-    // setDice(generateAllNewDice());
-    setDice(oldDice => oldDice.map(die =>
-      die.isHeld ?
-        die :
-        {...die, value: Math.ceil(Math.random() * 6)}
-    ));
-  }
+    if (!GameWon) {
+      // setDice(generateAllNewDice());
+      setDice(oldDice => oldDice.map(die =>
+        die.isHeld ?
+          die :
+          {...die, value: Math.ceil(Math.random() * 6)}
+      )) 
+      } else {
+        setDice(generateAllNewDice)
+        }
+    }
 
   function hold(id) {
     setDice(oldDice => {
@@ -54,10 +69,18 @@ function App() {
   return (
   <>
     <main>
+      <div aria-live='polite' className='sr-only'>
+        {gameWon && 
+        <p>Congratulation! You won! Press "New Game" to start again.</p>
+        }
+      </div>
+      <h1 className='title'>Tenzies</h1>
+      <p className="instructions">Roll all dice are the same. Click each dice to freeze
+      it at its current value between rolls.</p>
       <div className='dice-container'>
         {DiceElements}
       </div>
-      <button onClick={handleRoll} className="roll-btn">Roll</button>
+      <button ref={buttonRef} onClick={handleRoll} className="roll-btn">{gameWon ? "New Game" : "Roll"}</button>
     </main>
     </>
   )
